@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+		<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+		<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+		<style>
+			.w,
+			.h,
+			.circle-center {
+				position: fixed;
+			}
+
+			.w {
+				top: 50%;
+				height: 1px;
+				width: 100vw;
+				background-color: red;
+				transform: translate(0, -50%);
+			}
+
+			.h {
+				left: 50%;
+				height: 100vw;
+				width: 1px;
+				transform: translate(-50%, 0);
+				background-color: blue;
+			}
+
+			.circle-center {
+				top: 50%;
+				left: 50%;
+				height: 4px;
+				width: 20px;
+				transform: translate(-50%, -50%);
+				background-color: #000;
+			}
+
+			.triangle {
+				width: 0;
+				height: 0;
+				border-top: 6px solid transparent;
+				border-right: 6px solid transparent;
+				border-left: 6px solid #000;
+				border-bottom: 6px solid transparent;
+
+				position: absolute;
+				top: 0;
+				right: 0;
+				transform: translate(100%, -33.33%);
+			}
+
+			.arrow-bar {
+				position: fixed;
+				height: 4px;
+				width: 20px;
+				transform: translate(-50%, -50%);
+				background-color: #000;
+			}
+		</style>
+	</head>
+
+	<body style="height: 100vh; margin: 0">
+		<div class="w"></div>
+		<div class="h"></div>
+		<div class="circle-center">
+			<div class="triangle"></div>
+		</div>
+		<div id="react-container" style="height: 100vh; margin: 0"></div>
+
+		<script>
+			"use strict";
+			document.documentElement.addEventListener("mousemove", (e) => {
+				const { clientX: mouseX, clientY: mouseY } = e;
+				const { offsetLeft: domX, offsetTop: domY } = document.querySelector(".circle-center");
+				const angle = Math.atan2(mouseY - domY, mouseX - domX) * (180 / Math.PI);
+				document.querySelector(".circle-center").style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+			});
+		</script>
+		<script type="text/babel">
+			"use strict";
+			function Arrow(props) {
+				const { top, left, angle } = props;
+				return (
+					<div
+						className="arrow-bar"
+						style={{
+							top: top + "px",
+							left: left + "px",
+							transform: `rotate(${angle}deg)`,
+						}}
+					>
+						<div className="triangle"></div>
+					</div>
+				);
+			}
+			function ArrowList() {
+				const { innerHeight: windowH, innerWidth: windowW } = window;
+				const [arrows, setArrows] = React.useState(
+					Array(2000)
+						.fill(0)
+						.map(() => ({
+							top: windowH * Math.random(),
+							left: windowW * Math.random(),
+							angle: 0,
+						}))
+				);
+
+				React.useEffect(() => {
+					document.documentElement.addEventListener("mousemove", (e) => {
+						requestAnimationFrame(() => {
+							const { clientX: mouseX, clientY: mouseY } = e;
+							const newArrows = arrows.map((item) => {
+								const { top, left } = item;
+								return {
+									...item,
+									angle: (Math.atan2(mouseY - top, mouseX - left) * 180) / Math.PI,
+								};
+							});
+							setArrows(newArrows);
+						});
+					});
+				}, []);
+
+				return (
+					<div>
+						{arrows.map((item, i) => {
+							return <Arrow key={i} angle={item.angle} top={item.top} left={item.left} />;
+						})}
+					</div>
+				);
+			}
+			ReactDOM.render(<ArrowList />, document.querySelector("#react-container"));
+		</script>
+	</body>
+</html>
